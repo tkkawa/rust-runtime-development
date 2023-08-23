@@ -29,6 +29,10 @@ impl Create {
         unistd::chdir(&self.bundle)?;
         let spec = spec::Spec::load("config.json")?;
 
+        let container_dir = fs::canonicalize(container_dir)?;
+        unistd::chdir(&*container_dir)?;
+        log::debug!("Create: {:?}", container_dir);
+
         Ok(())
     }
 }
