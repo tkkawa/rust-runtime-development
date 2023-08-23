@@ -5,6 +5,7 @@ use anyhow::{bail, Ok, Result};
 use clap::Args;
 use nix::unistd;
 
+use crate::container::{Container, ContainerStatus};
 use crate::spec;
 
 #[derive(Debug, Args)]
@@ -32,6 +33,14 @@ impl Create {
         let container_dir = fs::canonicalize(container_dir)?;
         unistd::chdir(&*container_dir)?;
         log::debug!("Create: {:?}", container_dir);
+
+        let container = Container::new(
+            &self.container_id,
+            ContainerStatus::Creating,
+            None,
+            self.bundle.to_str().unwrap(),
+            &container_dir,
+        )?;
 
         Ok(())
     }
