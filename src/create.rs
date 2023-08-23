@@ -3,6 +3,9 @@ use std::fs;
 
 use anyhow::{bail, Ok, Result};
 use clap::Args;
+use nix::unistd;
+
+use crate::spec;
 
 #[derive(Debug, Args)]
 pub struct Create {
@@ -23,6 +26,9 @@ impl Create {
         } else {
             bail!("{} already exists", self.container_id)
         }
+        unistd::chdir(&self.bundle)?;
+        let spec = spec::Spec::load("config.json")?;
+
         Ok(())
     }
 }
