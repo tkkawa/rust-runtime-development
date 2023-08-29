@@ -44,7 +44,7 @@ impl Create {
         )?;
         container.save()?;
 
-        let mut notify_socket: NotifyListener = NotifyListener::new()?;
+        let mut notify_socket: NotifyListener = NotifyListener::new(&container_dir)?;
 
         Ok(())
     }
