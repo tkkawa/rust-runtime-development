@@ -46,6 +46,9 @@ impl Create {
 
         let mut notify_socket: NotifyListener = NotifyListener::new(&container_dir)?;
 
+        let rootfs = fs::canonicalize(&spec.root.path)?;
+        log::debug!("Create rootfs: {:?}", spec.root.path);
+
         Ok(())
     }
 }
