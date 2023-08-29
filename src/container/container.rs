@@ -7,7 +7,10 @@ use crate::container::{ContainerStatus, State};
 
 #[derive(Debug, Clone)]
 pub struct Container {
-    
+    // State of the container
+    pub state: State,
+    // indicated the directory for the root path in the container
+    pub root: PathBuf,
 }
 
 impl Container {
@@ -17,9 +20,17 @@ impl Container {
         pid: Option<i32>,
         bundle: &str,
         container_root: &PathBuf,
-    ) -> Result<()> {
+    ) -> Result<(Self)> {
         let container_root = fs::canonicalize(container_root)?;
         let state = State::new(container_id, status, pid, bundle);
-        Ok(())
+        Ok(Self {
+            state,
+            root: container_root,
+        })
+    }
+
+    pub fn save(&self) -> Result<()> {
+        log::debug!("Save container status: {:?} in {:?}", self, self.root);
+        self.state.save(&self.root)
     }
 }
