@@ -6,6 +6,7 @@ use clap::Args;
 use nix::unistd;
 
 use crate::container::{Container, ContainerStatus};
+use crate::notify_socket::NotifyListener;
 use crate::spec;
 
 #[derive(Debug, Args)]
@@ -41,6 +42,9 @@ impl Create {
             self.bundle.to_str().unwrap(),
             &container_dir,
         )?;
+        container.save()?;
+
+        let mut notify_socket: NotifyListener = NotifyListener::new()?;
 
         Ok(())
     }
