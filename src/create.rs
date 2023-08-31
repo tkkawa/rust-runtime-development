@@ -8,6 +8,7 @@ use nix::unistd;
 use crate::container::{Container, ContainerStatus};
 use crate::notify_socket::NotifyListener;
 use crate::spec;
+use crate::tty;
 
 #[derive(Debug, Args)]
 pub struct Create {
@@ -48,6 +49,16 @@ impl Create {
 
         let rootfs = fs::canonicalize(&spec.root.path)?;
         log::debug!("Create rootfs: {:?}", spec.root.path);
+
+        let (csocketfd, _consolefd) = {
+            if let Some(console_socket) = &self.console_socket {
+                let (csocketfd, consolefd) =
+                    tty::load_console_sockets(&container_dir, console_socket)?;
+                (Some(csocketfd), Some(consolefd))
+            } else {
+                (None, None)
+            }
+        };
 
         Ok(())
     }
