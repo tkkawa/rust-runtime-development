@@ -10,10 +10,31 @@ pub struct Root {
     pub path: PathBuf,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[serde(rename_all = "snake_case")]
+pub enum LinuxNamespaceType {
+    Mount = 0x00020000,
+    Cgroup = 0x02000000,
+    Uts = 0x04000000,
+    Ipc = 0x08000000,
+    User = 0x10000000,
+    Pid = 0x20000000,
+    Network = 0x40000000,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LinuxNamespace {
+    #[serde(rename = "type")]
+    pub typ: LinuxNamespaceType,
+    #[serde(default)]
+    pub path: String,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Linux {
-    
+    #[serde(default)]
+    pub namespaces: Vec<LinuxNamespace>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

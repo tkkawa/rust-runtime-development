@@ -3,6 +3,8 @@ use std::fs;
 
 use anyhow::{bail, Ok, Result};
 use clap::Args;
+use nix::fcntl;
+use nix::sys::stat;
 use nix::sched;
 use nix::unistd;
 
@@ -86,7 +88,17 @@ fn run_container<P: AsRef<Path>>(
     prctl::set_dumpable(false).unwrap();
     let linux = spec.linux.as_ref().unwrap();
     let mut cf = sched::CloneFlags::empty();
-    let mut to_enter: Vec<()> = Vec::new();
+    let mut to_enter = Vec::new();
 
+    for ns in &linux.namespaces {
+        let space = sched::CloneFlags::from_bits_truncate(ns.typ as i32);
+        if ns.path.is_empty() {
+            cf |= space;
+        } else {
+            let fd = fcntl::open(&*ns.path, fcntl::OFlag::empty(), stat::Mode::empty()).unwrap();
+            to_enter.push((space, fd));
+            log::debug!("to_enter->space:{:?},fd:{:?}", space, fd);
+        }
+    }
     Ok(())
 }
