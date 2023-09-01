@@ -10,6 +10,7 @@ use nix::unistd;
 
 use crate::container::{Container, ContainerStatus};
 use crate::notify_socket::NotifyListener;
+use crate::process::fork::fork_first;
 use crate::spec;
 use crate::tty;
 use crate::stdio::FileDescriptor;
@@ -100,5 +101,15 @@ fn run_container<P: AsRef<Path>>(
             log::debug!("to_enter->space:{:?},fd:{:?}", space, fd);
         }
     }
+
+    match fork_first(
+        pid_file,
+        cf.contains(sched::CloneFlags::CLONE_NEWUSER),
+        linux,
+        &container,
+    ) {
+        _ => unreachable!(),
+    }
+
     Ok(())
 }
