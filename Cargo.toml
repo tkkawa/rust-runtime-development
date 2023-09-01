@@ -17,5 +17,5 @@ fern = "0.6"
 chrono = "0.4"
 anyhow = "1.0"
 clap = { version = "4.3.8", features = ["derive"] }
-mio = { version = "0.8.8", features = ["os-ext", "os-poll"] }
-procfs = "0.15.1"
+mio = { version = "0.7", features = ["os-ext", "os-poll"] }
+procfs = "0.9.1"

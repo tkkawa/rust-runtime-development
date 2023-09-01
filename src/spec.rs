@@ -11,8 +11,15 @@ pub struct Root {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct Linux {
+    
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Spec{
     pub root: Root,
+    pub linux: Option<Linux>,
 }
 
 impl Spec {

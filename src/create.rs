@@ -3,6 +3,7 @@ use std::fs;
 
 use anyhow::{bail, Ok, Result};
 use clap::Args;
+use nix::sched;
 use nix::unistd;
 
 use crate::container::{Container, ContainerStatus};
@@ -82,5 +83,10 @@ fn run_container<P: AsRef<Path>>(
     csocketfd: Option<FileDescriptor>,
     container: Container,
 ) -> Result<()> {
+    prctl::set_dumpable(false).unwrap();
+    let linux = spec.linux.as_ref().unwrap();
+    let mut cf = sched::CloneFlags::empty();
+    let mut to_enter: Vec<()> = Vec::new();
+
     Ok(())
 }
