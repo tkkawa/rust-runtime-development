@@ -9,6 +9,7 @@ use crate::container::{Container, ContainerStatus};
 use crate::notify_socket::NotifyListener;
 use crate::spec;
 use crate::tty;
+use crate::stdio::FileDescriptor;
 
 #[derive(Debug, Args)]
 pub struct Create {
@@ -60,6 +61,26 @@ impl Create {
             }
         };
 
+        let process = run_container(
+            self.pid_file.as_ref(),
+            &mut notify_socket,
+            &rootfs,
+            &spec,
+            csocketfd,
+            container,
+        )?;
+
         Ok(())
     }
+}
+
+fn run_container<P: AsRef<Path>>(
+    pid_file: Option<P>,
+    notify_socket: &mut NotifyListener,
+    rootfs: &PathBuf,
+    spec: &spec::Spec,
+    csocketfd: Option<FileDescriptor>,
+    container: Container,
+) -> Result<()> {
+    Ok(())
 }
