@@ -107,7 +107,8 @@ fn run_container<P: AsRef<Path>>(
         cf.contains(sched::CloneFlags::CLONE_NEWUSER),
         linux,
         &container,
-    ) {
+    )? {
+        
         _ => unreachable!(),
     }
 
