@@ -1,19 +1,25 @@
-use std::path::{Path, PathBuf};
 use std::fs;
+use std::path::{Path, PathBuf};
+use std::process;
 
 use anyhow::{bail, Ok, Result};
 use clap::Args;
 use nix::fcntl;
-use nix::sys::stat;
 use nix::sched;
+use nix::sys::stat;
 use nix::unistd;
+use nix::unistd::{sethostname, Gid, Uid};
 
+use crate::capabilities;
 use crate::container::{Container, ContainerStatus};
 use crate::notify_socket::NotifyListener;
-use crate::process::fork::fork_first;
+use crate::process::Process;
+use crate::process::{fork::fork_first, fork::fork_init};
+use crate::rootfs;
 use crate::spec;
-use crate::tty;
 use crate::stdio::FileDescriptor;
+use crate::tty;
+use crate::utils;
 
 #[derive(Debug, Args)]
 pub struct Create {
@@ -85,7 +91,7 @@ fn run_container<P: AsRef<Path>>(
     spec: &spec::Spec,
     csocketfd: Option<FileDescriptor>,
     container: Container,
-) -> Result<()> {
+) -> Result<Process> {
     prctl::set_dumpable(false).unwrap();
     let linux = spec.linux.as_ref().unwrap();
     let mut cf = sched::CloneFlags::empty();
@@ -108,9 +114,88 @@ fn run_container<P: AsRef<Path>>(
         linux,
         &container,
     )? {
-        
+        Process::Parent(parent) => Ok(Process::Parent(parent)),
+        Process::Child(child) => {
+            setid(Uid::from_raw(0), Gid::from_raw(0))?;
+            if let Some(csocketfd) = csocketfd {
+                tty::ready(csocketfd)?;
+            }
+            log::debug!("Ready TTY");
+
+            for &(space, fd) in &to_enter {
+                sched::setns(fd, space)?;
+                log::debug!("setns()->space:{:?},fd:{:?}", space, fd);
+                unistd::close(fd)?;
+                if space == sched::CloneFlags::CLONE_NEWUSER {
+                    setid(Uid::from_raw(0), Gid::from_raw(0))?;
+                    log::debug!("Set ID");
+                }
+            }
+
+            sched::unshare(cf & !sched::CloneFlags::CLONE_NEWUSER)?;
+            log::debug!("Unshare!");
+
+            match fork_init(child)? {
+                Process::Child(child) => Ok(Process::Child(child)),
+                Process::Init(mut init) => {
+                    log::debug!("Execute Rootfs");
+                    futures::executor::block_on(rootfs::prepare_rootfs(
+                        spec,
+                        rootfs,
+                        cf.contains(sched::CloneFlags::CLONE_NEWUSER),
+                    ))?;
+                    rootfs::pivot_rootfs(&*rootfs)?;
+                    log::debug!("Complete Pivot Root");
+
+                    init.ready()?;
+                    log::debug!("Init Ready");
+
+                    notify_socket.wait_for_container_start()?;
+                    if spec.process.no_new_privileges {
+                        let _ = prctl::set_no_new_privileges(true);
+                    }
+
+                    // set hostname and environment value
+                    sethostname(&spec.hostname)?;
+                    utils::set_env_val(&spec.process.env);
+
+                    setid(
+                        Uid::from_raw(spec.process.user.uid),
+                        Gid::from_raw(spec.process.user.gid),
+                    )?;
+                    capabilities::reset_effective()?;
+                    if let Some(caps) = &spec.process.capabilities {
+                        capabilities::set_capabilities(&caps)?;
+                    }
+                    // set rlimits
+                    for rlimit in &spec.process.rlimits {
+                        utils::set_rlimits(rlimit)?;
+                    }
+
+                    utils::do_exec(&spec.process.args[0], &spec.process.args)?;
+                    container.update_status(ContainerStatus::Stopped)?.save()?;
+                    log::debug!("update");
+
+                    Ok(Process::Init(init))
+                }
+                Process::Parent(_) => unreachable!(),
+            }
+        }
         _ => unreachable!(),
     }
+}
 
+fn setid(uid: Uid, gid: Gid) -> Result<()> {
+    if let Err(e) = prctl::set_keep_capabilities(true) {
+        bail!("set keep capabilities returned {}", e);
+    };
+    unistd::setresgid(gid, gid, gid)?;
+    unistd::setresuid(uid, uid, uid)?;
+    if uid != Uid::from_raw(0) {
+        capabilities::reset_effective()?;
+    }
+    if let Err(e) = prctl::set_keep_capabilities(false) {
+        bail!("set keep capabilities returned {}", e);
+    };
     Ok(())
 }
