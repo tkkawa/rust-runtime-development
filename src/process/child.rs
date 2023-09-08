@@ -35,4 +35,45 @@ impl ChildProcess {
         self.poll = Some(poll);
         Ok(sender)
     }
+
+    pub fn ready(&mut self, init_pid: Pid) -> Result<()> {
+        log::debug!(
+            "child send to parent {:?}",
+            (Message::ChildReady as u8).to_be_bytes()
+        );
+        self.write_message_for_parent(Message::ChildReady)?;
+        self.sender_for_parent
+            .write_all(&(init_pid.as_raw()).to_be_bytes())?;
+        Ok(())
+    }
+
+    fn write_message_for_parent(&mut self, msg: Message) -> Result<()> {
+        self.sender_for_parent
+            .write_all(&(msg as u8).to_be_bytes())?;
+        Ok(())
+    }
+
+    pub fn wait_for_init_ready(&mut self) -> Result<()> {
+        let receiver = self
+            .receiver
+            .as_mut()
+            .expect("Complete the setup of uds in advance.");
+        let poll = self
+            .poll
+            .as_mut()
+            .expect("Complete the setup of uds in advance.");
+        let mut events = Events::with_capacity(128);
+        poll.poll(&mut events, Some(Duration::from_millis(1000)))?;
+        log::debug!("Init Events: {:?}", events);
+
+        for _event in events.iter() {
+            let mut buf = [0; 1];
+            receiver.read_exact(&mut buf)?;
+            match Message::from(u8::from_be_bytes(buf)) {
+                Message::InitReady => return Ok(()),
+                msg => bail!("receive unexpected message {:?} in child process", msg),
+            }
+        }
+        bail!("unexpected message.")
+    }
 }
