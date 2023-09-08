@@ -63,3 +63,32 @@ pub fn fork_first<P: AsRef<Path>>(
         }
     }
 }
+
+pub fn fork_init(mut child_process: child::ChildProcess) -> Result<Process> {
+    let sender_for_child = child_process.setup_uds()?;
+    unsafe {
+        match unistd::fork()? {
+            unistd::ForkResult::Child => {
+                Ok(Process::Init(init::InitProcess::new(sender_for_child)))
+            }
+            unistd::ForkResult::Parent { child } => {
+                log::debug!("Wait for init ready");
+                child_process.wait_for_init_ready()?;
+                log::debug!("Ready Child");
+                child_process.ready(child)?;
+                log::debug!("Wait Pid");
+                match waitpid(child, None)? {
+                    WaitStatus::Exited(pid, status) => {
+                        log::debug!("exited pid: {:?}, status: {:?}", pid, status);
+                        exit(status);
+                    }
+                    WaitStatus::Signaled(pid, status, _) => {
+                        log::debug!("signaled pid: {:?}, status: {:?}", pid, status);
+                        exit(0);
+                    }
+                    _ => bail!("abnormal exited!"),
+                }
+            }
+        }
+    }
+}

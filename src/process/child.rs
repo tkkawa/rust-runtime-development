@@ -25,4 +25,14 @@ impl ChildProcess {
             poll: None,
         })
     }
+
+    pub fn setup_uds(&mut self) -> Result<Sender> {
+        let (sender, mut receiver) = pipe::new()?;
+        let poll = Poll::new()?;
+        poll.registry()
+            .register(&mut receiver, CHILD, Interest::READABLE)?;
+        self.receiver = Some(receiver);
+        self.poll = Some(poll);
+        Ok(sender)
+    }
 }
