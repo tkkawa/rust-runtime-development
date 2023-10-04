@@ -19,3 +19,4 @@ anyhow = "1.0"
 clap = { version = "4.3.8", features = ["derive"] }
 mio = { version = "0.7", features = ["os-ext", "os-poll"] }
 procfs = "0.9.1"
+caps = "0.5.1"

@@ -22,6 +22,25 @@ pub enum LinuxNamespaceType {
     Network = 0x40000000,
 }
 
+#[derive(Debug, Clone)]
+pub struct LinuxCapabilityType {
+    pub cap: Capability,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct LinuxCapabilities {
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub bounding: Vec<LinuxCapabilityType>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub effective: Vec<LinuxCapabilityType>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub inheritable: Vec<LinuxCapabilityType>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub permitted: Vec<LinuxCapabilityType>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub ambient: Vec<LinuxCapabilityType>,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LinuxNamespace {
     #[serde(rename = "type")]
