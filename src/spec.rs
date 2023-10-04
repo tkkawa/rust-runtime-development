@@ -10,6 +10,35 @@ pub struct Root {
     pub path: PathBuf,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Mount {
+    #[serde(default)]
+    pub destination: PathBuf,
+    #[serde(default, rename = "type")]
+    pub typ: String,
+    #[serde(default)]
+    pub source: PathBuf,
+    #[serde(default)]
+    pub options: Vec<String>,
+}
+
+// a is for LinuxDeviceCgroup
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[serde(rename_all = "lowercase")]
+pub enum LinuxDeviceType {
+    B,
+    C,
+    U,
+    P,
+    A,
+}
+
+impl Default for LinuxDeviceType {
+    fn default() -> LinuxDeviceType {
+        LinuxDeviceType::A
+    }
+}
+
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct LinuxRlimits {
@@ -80,6 +109,22 @@ pub struct LinuxNamespace {
     pub typ: LinuxNamespaceType,
     #[serde(default)]
     pub path: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LinuxDevice {
+    #[serde(default)]
+    pub path: String,
+    #[serde(rename = "type")]
+    pub typ: LinuxDeviceType,
+    #[serde(default)]
+    pub major: u64,
+    #[serde(default)]
+    pub minor: u64,
+    pub file_mode: Option<u32>,
+    pub uid: Option<u32>,
+    pub gid: Option<u32>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

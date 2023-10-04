@@ -11,6 +11,14 @@ fn set_cap_hash_set(caps: &[LinuxCapabilityType]) -> CapsHashSet {
     capabilities
 }
 
+pub fn reset_effective() -> Result<()> {
+    log::debug!("reset all caps");
+    // permitted capabilities are all the capabilities that we are allowed to acquire
+    let permitted = caps::read(None, CapSet::Permitted)?;
+    set(None, CapSet::Effective, &permitted)?;
+    Ok(())
+}
+
 pub fn set_capabilities(cs: &LinuxCapabilities) -> Result<()> {
     let all = caps::all();
     log::debug!("dropping bounding capabilities to {:?}", cs.bounding);
