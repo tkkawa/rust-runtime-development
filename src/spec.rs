@@ -10,6 +10,39 @@ pub struct Root {
     pub path: PathBuf,
 }
 
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LinuxRlimits {
+    #[serde(rename = "type")]
+    pub typ: LinuxRlimitType,
+    #[serde(default)]
+    pub soft: u64,
+    #[serde(default)]
+    pub hard: u64,
+}
+
+// https://containers.github.io/oci-spec-rs/oci_spec/runtime/enum.LinuxRlimitType.html
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum LinuxRlimitType {
+    RlimitCpu,
+    RlimitFsize,
+    RlimitData,
+    RlimitStack,
+    RlimitCore,
+    RlimitRss,
+    RlimitNproc,
+    RlimitNofile,
+    RlimitMemlock,
+    RlimitAs,
+    RlimitLocks,
+    RlimitSigpending,
+    RlimitMsgqueue,
+    RlimitNice,
+    RlimitRtprio,
+    RlimitRttime,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum LinuxNamespaceType {
