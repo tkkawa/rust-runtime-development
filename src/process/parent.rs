@@ -3,7 +3,7 @@ use std::{io::Read, time::Duration};
 use anyhow::{bail, Result};
 use mio::unix::pipe;
 use mio::unix::pipe::{Receiver, Sender};
-use mio::{Interest, Poll, Token};
+use mio::{Events, Interest, Poll, Token};
 
 use crate::process::message::Message;
 

@@ -11,7 +11,7 @@ use nix::unistd;
 
 use crate::cond::Cond;
 use crate::container::{Container, ContainerStatus};
-use crate::process::parent;
+use crate::process::{child, init, parent, Process};
 use crate::spec;
 
 pub fn fork_first<P: AsRef<Path>>(

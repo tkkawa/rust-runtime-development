@@ -2,6 +2,7 @@ use std::fs::File;
 use std::path::PathBuf;
 
 use anyhow::Result;
+use caps::Capability;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
