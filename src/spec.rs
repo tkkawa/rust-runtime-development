@@ -133,12 +133,21 @@ pub struct LinuxDevice {
 pub struct Linux {
     #[serde(default)]
     pub namespaces: Vec<LinuxNamespace>,
+    #[serde(default)]
+    pub rootfs_propagation: String,
+    #[serde(default)]
+    pub devices: Vec<LinuxDevice>,
+    #[serde(default)]
+    pub mount_label: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Spec{
     pub root: Root,
     pub linux: Option<Linux>,
+    #[serde(default)]
+    pub mounts: Vec<Mount>,
+    
 }
 
 impl Spec {
