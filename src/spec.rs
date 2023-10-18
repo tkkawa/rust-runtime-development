@@ -26,39 +26,7 @@ pub struct User {
     pub username: String,
 }
 
-#[derive(Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct LinuxRlimits {
-    #[serde(rename = "type")]
-    pub typ: LinuxRlimitType,
-    #[serde(default)]
-    pub soft: u64,
-    #[serde(default)]
-    pub hard: u64,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum LinuxRlimitType {
-    RlimitCpu,
-    RlimitFsize,
-    RlimitData,
-    RlimitStack,
-    RlimitCore,
-    RlimitRss,
-    RlimitNproc,
-    RlimitNofile,
-    RlimitMemlock,
-    RlimitAs,
-    RlimitLocks,
-    RlimitSigpending,
-    RlimitMsgqueue,
-    RlimitNice,
-    RlimitRtprio,
-    RlimitRttime,
-}
-
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Process {
     #[serde(default)]
@@ -71,8 +39,6 @@ pub struct Process {
     pub env: Vec<String>,
     #[serde(default)]
     pub cwd: String,
-    #[serde(default)]
-    pub rlimits: Vec<LinuxRlimits>,
     #[serde(default)]
     pub no_new_privileges: bool,
     #[serde(default)]
