@@ -33,4 +33,14 @@ impl Container {
         log::debug!("Save container status: {:?} in {:?}", self, self.root);
         self.state.save(&self.root)
     }
+
+    pub fn update_status(&self, status: ContainerStatus) -> Result<Self> {
+        Self::new(
+            self.state.id.as_str(),
+            status,
+            self.state.pid,
+            self.state.bundle.as_str(),
+            &self.root,
+        )
+    }
 }

@@ -151,26 +151,26 @@ fn run_container<P: AsRef<Path>>(
                     log::debug!("Init Ready");
 
                     notify_socket.wait_for_container_start()?;
-                    if spec.process.no_new_privileges {
-                        let _ = prctl::set_no_new_privileges(true);
-                    }
+                    // if spec.process.no_new_privileges {
+                    //     let _ = prctl::set_no_new_privileges(true);
+                    // }
 
-                    // set hostname and environment value
-                    sethostname(&spec.hostname)?;
-                    utils::set_env_val(&spec.process.env);
+                    // // set hostname and environment value
+                    // sethostname(&spec.hostname)?;
+                    // utils::set_env_val(&spec.process.env);
 
-                    setid(
-                        Uid::from_raw(spec.process.user.uid),
-                        Gid::from_raw(spec.process.user.gid),
-                    )?;
-                    capabilities::reset_effective()?;
-                    if let Some(caps) = &spec.process.capabilities {
-                        capabilities::set_capabilities(&caps)?;
-                    }
-                    // set rlimits
-                    for rlimit in &spec.process.rlimits {
-                        utils::set_rlimits(rlimit)?;
-                    }
+                    // setid(
+                    //     Uid::from_raw(spec.process.user.uid),
+                    //     Gid::from_raw(spec.process.user.gid),
+                    // )?;
+                    // capabilities::reset_effective()?;
+                    // if let Some(caps) = &spec.process.capabilities {
+                    //     capabilities::set_capabilities(&caps)?;
+                    // }
+                    // // set rlimits
+                    // for rlimit in &spec.process.rlimits {
+                    //     utils::set_rlimits(rlimit)?;
+                    // }
 
                     utils::do_exec(&spec.process.args[0], &spec.process.args)?;
                     container.update_status(ContainerStatus::Stopped)?.save()?;

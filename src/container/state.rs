@@ -60,7 +60,16 @@ impl State {
 #[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum ContainerStatus {
+    // The container is being created
     Creating,
+    // The runtime has finished the create operation
+    Created,
+    // The container process has executed the user-specified program but has not exited
+    Running,
+    // The container process has exited
+    Stopped,
+    // The container process has paused
+    Paused,
 }
 
 impl ContainerStatus {

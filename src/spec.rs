@@ -5,6 +5,84 @@ use anyhow::Result;
 use caps::Capability;
 use serde::{Deserialize, Serialize};
 
+#[derive(Default, PartialEq, Serialize, Deserialize, Debug)]
+pub struct Box {
+    #[serde(default)]
+    pub height: u64,
+    #[serde(default)]
+    pub width: u64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct User {
+    #[serde(default)]
+    pub uid: u32,
+    #[serde(default)]
+    pub gid: u32,
+    #[serde(default)]
+    pub additional_gids: Vec<u32>,
+    #[serde(default)]
+    pub username: String,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LinuxRlimits {
+    #[serde(rename = "type")]
+    pub typ: LinuxRlimitType,
+    #[serde(default)]
+    pub soft: u64,
+    #[serde(default)]
+    pub hard: u64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum LinuxRlimitType {
+    RlimitCpu,
+    RlimitFsize,
+    RlimitData,
+    RlimitStack,
+    RlimitCore,
+    RlimitRss,
+    RlimitNproc,
+    RlimitNofile,
+    RlimitMemlock,
+    RlimitAs,
+    RlimitLocks,
+    RlimitSigpending,
+    RlimitMsgqueue,
+    RlimitNice,
+    RlimitRtprio,
+    RlimitRttime,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct Process {
+    #[serde(default)]
+    pub terminal: bool,
+    #[serde(default)]
+    pub console_size: Box,
+    pub user: User,
+    pub args: Vec<String>,
+    #[serde(default)]
+    pub env: Vec<String>,
+    #[serde(default)]
+    pub cwd: String,
+    #[serde(default, deserialize_with = "deserialize_caps")]
+    pub capabilities: Option<LinuxCapabilities>,
+    #[serde(default)]
+    pub rlimits: Vec<LinuxRlimits>,
+    #[serde(default)]
+    pub no_new_privileges: bool,
+    #[serde(default)]
+    pub apparmor_profile: String,
+    #[serde(default)]
+    pub selinux_label: String,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Root {
     #[serde(default)]
@@ -38,39 +116,6 @@ impl Default for LinuxDeviceType {
     fn default() -> LinuxDeviceType {
         LinuxDeviceType::A
     }
-}
-
-#[derive(Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct LinuxRlimits {
-    #[serde(rename = "type")]
-    pub typ: LinuxRlimitType,
-    #[serde(default)]
-    pub soft: u64,
-    #[serde(default)]
-    pub hard: u64,
-}
-
-// https://containers.github.io/oci-spec-rs/oci_spec/runtime/enum.LinuxRlimitType.html
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum LinuxRlimitType {
-    RlimitCpu,
-    RlimitFsize,
-    RlimitData,
-    RlimitStack,
-    RlimitCore,
-    RlimitRss,
-    RlimitNproc,
-    RlimitNofile,
-    RlimitMemlock,
-    RlimitAs,
-    RlimitLocks,
-    RlimitSigpending,
-    RlimitMsgqueue,
-    RlimitNice,
-    RlimitRtprio,
-    RlimitRttime,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
@@ -144,10 +189,12 @@ pub struct Linux {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Spec{
     pub root: Root,
-    pub linux: Option<Linux>,
+    pub process: Process,
+    #[serde(default)]
+    pub hostname: String,
     #[serde(default)]
     pub mounts: Vec<Mount>,
-    
+    pub linux: Option<Linux>,
 }
 
 impl Spec {
