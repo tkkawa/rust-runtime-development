@@ -1,6 +1,9 @@
-use anyhow::{Ok, Result};
+use std::io::prelude::*;
+use std::os::unix::io::AsRawFd;
 use std::os::unix::net::UnixListener;
 use std::path::PathBuf;
+
+use anyhow::Result;
 
 pub const NOTIFY_FILE: &str = "notify.sock";
 
@@ -14,5 +17,17 @@ impl NotifyListener {
         let _notify_file_path = root.join(NOTIFY_FILE);
         let stream = UnixListener::bind(NOTIFY_FILE)?;
         Ok(Self { socket: stream })
+    }
+
+    pub fn wait_for_container_start(&mut self) -> Result<()> {
+        match self.socket.accept() {
+            Ok((mut socket, _addr)) => {
+                let mut response = String::new();
+                socket.read_to_string(&mut response)?;
+                log::debug!("receive :{}", response);
+            }
+            Err(e) => println!("accept function failed: {:?}", e),
+        }
+        Ok(())
     }
 }
