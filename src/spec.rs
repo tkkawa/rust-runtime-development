@@ -71,8 +71,6 @@ pub struct Process {
     pub env: Vec<String>,
     #[serde(default)]
     pub cwd: String,
-    #[serde(default, deserialize_with = "deserialize_caps")]
-    pub capabilities: Option<LinuxCapabilities>,
     #[serde(default)]
     pub rlimits: Vec<LinuxRlimits>,
     #[serde(default)]
@@ -118,6 +116,131 @@ impl Default for LinuxDeviceType {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LinuxDeviceCgroup {
+    #[serde(default)]
+    pub allow: bool,
+    #[serde(default, rename = "type")]
+    pub typ: LinuxDeviceType,
+    pub major: Option<i64>,
+    pub minor: Option<i64>,
+    #[serde(default)]
+    pub access: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LinuxMemory {
+    pub limit: Option<i64>,
+    pub reservation: Option<i64>,
+    pub swap: Option<i64>,
+    pub kernel: Option<i64>,
+    #[serde(rename = "kernelTCP")]
+    pub kernel_tcp: Option<i64>,
+    pub swappiness: Option<u64>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LinuxCPU {
+    pub shares: Option<u64>,
+    pub quota: Option<i64>,
+    pub period: Option<u64>,
+    pub realtime_runtime: Option<i64>,
+    pub realtime_period: Option<u64>,
+    #[serde(default)]
+    pub cpus: String,
+    #[serde(default)]
+    pub mems: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LinuxPids {
+    #[serde(default)]
+    pub limit: i64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LinuxWeightDevice {
+    #[serde(default)]
+    pub major: i64,
+    #[serde(default)]
+    pub minor: i64,
+    pub weight: Option<u16>,
+    pub leaf_weight: Option<u16>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LinuxThrottleDevice {
+    #[serde(default)]
+    pub major: i64,
+    #[serde(default)]
+    pub minor: i64,
+    #[serde(default)]
+    pub rate: u64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LinuxBlockIO {
+    pub blkio_weight: Option<u16>,
+    pub blkio_leaf_weight: Option<u16>,
+    #[serde(default)]
+    pub blkio_weight_device: Vec<LinuxWeightDevice>,
+    #[serde(default)]
+    pub blkio_throttle_read_bps_device: Vec<LinuxThrottleDevice>,
+    #[serde(default)]
+    pub blkio_throttle_write_bps_device: Vec<LinuxThrottleDevice>,
+    #[serde(default, rename = "blkioThrottleReadIOPSDevice")]
+    pub blkio_throttle_read_iops_device: Vec<LinuxThrottleDevice>,
+    #[serde(default, rename = "blkioThrottleWriteIOPSDevice")]
+    pub blkio_throttle_write_iops_device: Vec<LinuxThrottleDevice>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LinuxHugepageLimit {
+    #[serde(default)]
+    pub page_size: String,
+    #[serde(default)]
+    pub limit: i64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LinuxInterfacePriority {
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub priority: u32,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LinuxNetwork {
+    #[serde(rename = "classID")]
+    pub class_id: Option<u32>,
+    #[serde(default)]
+    pub priorities: Vec<LinuxInterfacePriority>,
+}
+
+#[derive(Default, Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LinuxResources {
+    #[serde(default)]
+    pub devices: Vec<LinuxDeviceCgroup>,
+    #[serde(default)]
+    pub disable_oom_killer: bool,
+    pub oom_score_adj: Option<i32>,
+    pub memory: Option<LinuxMemory>,
+    pub cpu: Option<LinuxCPU>,
+    pub pids: Option<LinuxPids>,
+    #[serde(rename = "blockIO")]
+    pub block_io: Option<LinuxBlockIO>,
+    #[serde(default)]
+    pub hugepage_limits: Vec<LinuxHugepageLimit>,
+    pub network: Option<LinuxNetwork>,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum LinuxNamespaceType {
@@ -130,24 +253,6 @@ pub enum LinuxNamespaceType {
     Network = 0x40000000,
 }
 
-#[derive(Debug, Clone)]
-pub struct LinuxCapabilityType {
-    pub cap: Capability,
-}
-
-#[derive(Deserialize, Debug, Clone)]
-pub struct LinuxCapabilities {
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub bounding: Vec<LinuxCapabilityType>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub effective: Vec<LinuxCapabilityType>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub inheritable: Vec<LinuxCapabilityType>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub permitted: Vec<LinuxCapabilityType>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub ambient: Vec<LinuxCapabilityType>,
-}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LinuxNamespace {
@@ -176,6 +281,7 @@ pub struct LinuxDevice {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Linux {
+    pub resources: Option<LinuxResources>,
     #[serde(default)]
     pub namespaces: Vec<LinuxNamespace>,
     #[serde(default)]

@@ -10,7 +10,6 @@ use nix::sys::stat;
 use nix::unistd;
 use nix::unistd::{sethostname, Gid, Uid};
 
-use crate::capabilities;
 use crate::container::{Container, ContainerStatus};
 use crate::notify_socket::NotifyListener;
 use crate::process::Process;
@@ -191,9 +190,7 @@ fn setid(uid: Uid, gid: Gid) -> Result<()> {
     };
     unistd::setresgid(gid, gid, gid)?;
     unistd::setresuid(uid, uid, uid)?;
-    if uid != Uid::from_raw(0) {
-        capabilities::reset_effective()?;
-    }
+
     if let Err(e) = prctl::set_keep_capabilities(false) {
         bail!("set keep capabilities returned {}", e);
     };
