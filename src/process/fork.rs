@@ -20,7 +20,7 @@ pub fn fork_first<P: AsRef<Path>>(
     linux: &spec::Linux,
     container: &Container,
 ) -> Result<Process> {
-    let ccond = Cond::new();
+    let ccond = Cond::new()?;
 
     let (mut parent, sender_for_parent) = parent::ParentProcess::new()?;
     log::debug!("Create Parent Process");
