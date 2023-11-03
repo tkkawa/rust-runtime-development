@@ -13,6 +13,11 @@ pub struct Start {
 
 impl Start {
     pub fn exec(&self, root_path: PathBuf) -> Result<()> {
+        let container_root = root_path.jpin(&self.container_id);
+        if ! container_root.exists() {
+            bail!("{} doesn't exists.", self.container_id)
+        }
+        let container = Container::laod(container_root)?.refresh_status()?;
         Ok(())
     }
 }

@@ -62,4 +62,12 @@ impl Container {
             &self.root,
         )
     }
+
+    pub fn load(container_root: PathBuf) -> Result<Self> {
+        let state = State::load(&container_root)?;
+        Ok(Self {
+            state,
+            root: container_root,
+        })
+    }
 }

@@ -55,6 +55,14 @@ impl State {
         serde_json::to_writer(&file, self)?;
         Ok(())
     }
+
+    pub fn load(container_root: &PathBuf) -> Result<Self> {
+        // /var/run/youki/${container_number}/state.json
+        let state_file_path = container_root.join(STATE_FILE_PATH);
+        let file = File::open(state_file_path)?;
+        let state: Self = serde_json::from_reader(&file)?;
+        Ok(state)
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq)]
