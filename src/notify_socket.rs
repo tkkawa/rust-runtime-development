@@ -1,6 +1,6 @@
 use std::io::prelude::*;
 use std::os::unix::io::AsRawFd;
-use std::os::unix::net::UnixListener;
+use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::PathBuf;
 
 use anyhow::Result;
@@ -35,13 +35,13 @@ impl NotifyListener {
 pub struct NotifySocket {}
 
 impl NotifySocket {
-    pub fn new(_root: PathBuf) -> Result<Self> {
+    pub fn new(_root: &PathBuf) -> Result<Self> {
         Ok(Self {})
     }
 
     pub fn notify_container_start(&mut self) -> Result<()> {
         log::debug!("connection start");
-        let mut stream = UnixStream::connect("notify.sock");
+        let mut stream = UnixStream::connect("notify.sock")?;
         stream.write_all(b"start container")?;
         log::debug!("write finish");
         Ok(())

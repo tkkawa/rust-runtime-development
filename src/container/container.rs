@@ -2,6 +2,8 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::Result;
+use nix::unistd::Pid;
+use procfs::process::{ProcState, Process};
 
 use crate::container::{ContainerStatus, State};
 
@@ -37,6 +39,26 @@ impl Container {
         self.state.status
     }
 
+    pub fn refresh_status(&self) -> Result<Self> {
+        let new_status = match self.pid() {
+            Some(pid) => {
+                if let Ok(proc) = Process::new(pid.as_raw()) {
+                    match proc.stat.state().unwrap() {
+                        ProcState::Zombie | ProcState::Dead => ContainerStatus::Stopped,
+                        _ => match self.status() {
+                            ContainerStatus::Creating | ContainerStatus::Created => self.status(),
+                            _ => ContainerStatus::Running,
+                        },
+                    }
+                } else {
+                    ContainerStatus::Stopped
+                }
+            }
+            None => ContainerStatus::Stopped,
+        };
+        self.update_status(new_status)
+    }
+
     pub fn save(&self) -> Result<()> {
         log::debug!("Save container status: {:?} in {:?}", self, self.root);
         self.state.save(&self.root)
@@ -65,6 +87,10 @@ impl Container {
 
     pub fn can_start(&self) -> bool {
         self.state.status.can_start()
+    }
+
+    pub fn pid(&self) -> Option<Pid> {
+        self.state.pid.map(Pid::from_raw)
     }
 
     pub fn load(container_root: PathBuf) -> Result<Self> {

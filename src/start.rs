@@ -14,11 +14,11 @@ pub struct Start {
 
 impl Start {
     pub fn exec(&self, root_path: PathBuf) -> Result<()> {
-        let container_root = root_path.jpin(&self.container_id);
+        let container_root = root_path.join(&self.container_id);
         if ! container_root.exists() {
             bail!("{} doesn't exists.", self.container_id)
         }
-        let container = Container::laod(container_root)?.refresh_status()?;
+        let container = Container::load(container_root)?.refresh_status()?;
         if !container.can_start() {
             let err_msg = format!(
                 "{} counld not be started because it was {:?}",
@@ -33,6 +33,8 @@ impl Start {
         log::debug!("{}", &container.root.display());
         let mut notify_socket = NotifySocket::new(&container.root)?;
         notify_socket.notify_container_start()?;
+
+        container.update_status(ContainerStatus::Running)?.save()?;
         Ok(())
     }
 }

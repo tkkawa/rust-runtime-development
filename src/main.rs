@@ -36,6 +36,6 @@ fn main() -> Result<()> {
 
     match opts.cmd {
         Commands::Create(create) => create.exec(root_path),
-        Commands::Start(start) => start.exec(root_path)
+        Commands::Start(start) => start.exec(root_path),
     }
 }
