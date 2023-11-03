@@ -31,3 +31,19 @@ impl NotifyListener {
         Ok(())
     }
 }
+
+pub struct NotifySocket {}
+
+impl NotifySocket {
+    pub fn new(_root: PathBuf) -> Result<Self> {
+        Ok(Self {})
+    }
+
+    pub fn notify_container_start(&mut self) -> Result<()> {
+        log::debug!("connection start");
+        let mut stream = UnixStream::connect("notify.sock");
+        stream.write_all(b"start container")?;
+        log::debug!("write finish");
+        Ok(())
+    }
+}

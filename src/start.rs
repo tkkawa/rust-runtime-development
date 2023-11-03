@@ -5,6 +5,7 @@ use clap::Args;
 use nix::unistd;
 
 use crate::container::{Container, ContainerStatus};
+use crate::notify_socket::NotifySocket;
 
 #[derive(Debug, Args)]
 pub struct Start {
@@ -27,6 +28,11 @@ impl Start {
             log::error!("{}", err_msg);
             bail!(err_msg);
         }
+        unistd::chdir(container.root.as_os_str())?;
+
+        log::debug!("{}", &container.root.display());
+        let mut notify_socket = NotifySocket::new(&container.root)?;
+        notify_socket.notify_container_start()?;
         Ok(())
     }
 }
