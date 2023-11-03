@@ -18,6 +18,15 @@ impl Start {
             bail!("{} doesn't exists.", self.container_id)
         }
         let container = Container::laod(container_root)?.refresh_status()?;
+        if !container.can_start() {
+            let err_msg = format!(
+                "{} counld not be started because it was {:?}",
+                container.id(),
+                container.status()
+            );
+            log::error!("{}", err_msg);
+            bail!(err_msg);
+        }
         Ok(())
     }
 }

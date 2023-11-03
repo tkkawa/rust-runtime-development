@@ -81,5 +81,7 @@ pub enum ContainerStatus {
 }
 
 impl ContainerStatus {
-
+    pub fn can_start(&self) -> bool {
+        matches!(self, ContainerStatus::Created)
+    }
 }

@@ -63,6 +63,10 @@ impl Container {
         )
     }
 
+    pub fn can_start(&self) -> bool {
+        self.state.status.can_start()
+    }
+
     pub fn load(container_root: PathBuf) -> Result<Self> {
         let state = State::load(&container_root)?;
         Ok(Self {
