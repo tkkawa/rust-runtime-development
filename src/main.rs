@@ -6,6 +6,7 @@ use std::path::PathBuf;
 
 use rust_runtime::create;
 use rust_runtime::logger::init_logger;
+use rust_runtime::start;
 
 #[derive(Debug, Parser)]
 struct Opts {
@@ -23,6 +24,8 @@ struct Opts {
 enum Commands {
     #[command(about = "")]
     Create(create::Create),
+    #[command(about = "")]
+    Start(start::Start),
 }
 
 fn main() -> Result<()> {
@@ -32,6 +35,7 @@ fn main() -> Result<()> {
     fs::create_dir_all(&root_path)?;
 
     match opts.cmd {
-        Commands::Create(create) => create.exec(root_path)
+        Commands::Create(create) => create.exec(root_path),
+        Commands::Start(start) => start.exec(root_path),
     }
 }
