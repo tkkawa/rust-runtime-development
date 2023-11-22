@@ -12,7 +12,7 @@ pub struct NotifyListener {
 }
 
 impl NotifyListener {
-    pub fn new(root: &PathBuf) -> Result<(Self)> {
+    pub fn new(root: &PathBuf) -> Result<Self> {
         // /var/run/youki/${container_id}/notify.sock
         let _notify_file_path = root.join(NOTIFY_FILE);
         let stream = UnixListener::bind(NOTIFY_FILE)?;

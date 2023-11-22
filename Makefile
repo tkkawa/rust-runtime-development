@@ -6,15 +6,15 @@ CONTAINER_NAME=${USER}_${PROJECT_NAME}
 SHM_SIZE=2g
 FORCE_RM=true
 
-build_runtime:
+build:
 	docker build \
-		-f docker/Dockerfile \
+		-f docker/build/Dockerfile \
 		-t $(IMAGE_NAME)-build \
 		--no-cache \
 		--force-rm=$(FORCE_RM) \
 		.
 
-run_runtime:
+run:
 	docker run \
 		-dit \
 		-v $(PWD):/workspace/crate \
@@ -26,12 +26,12 @@ run_runtime:
 		$(IMAGE_NAME)-build \
 		/bin/bash
 
-exec_runtime:
+exec:
 	docker exec \
 		-it \
 		$(CONTAINER_NAME)-build /bin/bash
 
-stop_runtime:
+stop:
 	docker stop $(CONTAINER_NAME)-build
 
 build_test:
