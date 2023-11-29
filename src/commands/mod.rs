@@ -7,10 +7,17 @@ use std::{
 pub mod delete;
 
 fn construct_container_root<P: AsRef<Path>>(root_path: P, container_id: &str) -> Result<PathBuf> {
-    Ok(())
+    let root_path = fs:: canonicalize(&root_path).with_context(|| {
+        format!(
+            "failed to canonicalize {} for container {}",
+            root_path.as_ref().display(),
+            container_id
+        )
+    })?;
+    Ok(root_path.join(container_id))
 }
 
 fn container_exists<P: AsRef<Path>>(root_path: P, container_id: &str) -> Result<bool> {
     let container_root = construct_container_root(root_path, container_id)?;
-    Ok(())
+    Ok(container_root.exists())
 }
