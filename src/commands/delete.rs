@@ -12,4 +12,6 @@ pub fn delete(args: Delete, root_path:PathBuf) -> Result<()> {
     if !container_exists(&root_path, &args.container_id)? && args.force {
         return Ok(());
     }
+
+    let mut container = load_container(root_path, &args.container_id)?;
 }
