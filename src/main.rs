@@ -26,6 +26,8 @@ enum Commands {
     Create(create::Create),
     #[command(about = "")]
     Start(start::Start),
+    #[command(about = "")]
+    Delete(commands::delete::Delete),
 }
 
 fn main() -> Result<()> {
@@ -37,5 +39,6 @@ fn main() -> Result<()> {
     match opts.cmd {
         Commands::Create(create) => create.exec(root_path),
         Commands::Start(start) => start.exec(root_path),
+        Commands::Delete(delete) => commands::delete::delete(delete, root_path),
     }
 }
