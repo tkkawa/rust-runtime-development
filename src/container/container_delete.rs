@@ -1,5 +1,6 @@
 use super::{Container, ContainerStatus};
-use crate::LibcontainerError;
+use crate::error::LibcontainerError;
+use nix::sys::signal;
 
 impl Container {
     pub fn delete(&mut self, force: bool) -> Result<(), LibcontainerError> {

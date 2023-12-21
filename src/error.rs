@@ -34,32 +34,32 @@ pub enum LibcontainerError {
     InvalidSpec(#[from] ErrInvalidSpec),
 
     // Errors from submodules and other errors
-    #[error(transparent)]
-    Tty(#[from] crate::tty::TTYError),
-    #[error(transparent)]
-    UserNamespace(#[from] crate::user_ns::UserNamespaceError),
-    #[error(transparent)]
-    NotifyListener(#[from] crate::notify_socket::NotifyListenerError),
-    #[error(transparent)]
-    Config(#[from] crate::config::ConfigError),
-    #[error(transparent)]
-    Hook(#[from] crate::hooks::HookError),
-    #[error(transparent)]
-    State(#[from] crate::container::state::StateError),
+    // #[error(transparent)]
+    // Tty(#[from] crate::tty::TTYError),
+    // #[error(transparent)]
+    // UserNamespace(#[from] crate::user_ns::UserNamespaceError),
+    // #[error(transparent)]
+    // NotifyListener(#[from] crate::notify_socket::NotifyListenerError),
+    // #[error(transparent)]
+    // Config(#[from] crate::config::ConfigError),
+    // #[error(transparent)]
+    // Hook(#[from] crate::hooks::HookError),
+    // #[error(transparent)]
+    // State(#[from] crate::container::state::StateError),
     #[error("oci spec error")]
     Spec(#[from] oci_spec::OciSpecError),
-    #[error(transparent)]
-    MainProcess(#[from] crate::process::container_main_process::ProcessError),
+    // #[error(transparent)]
+    // MainProcess(#[from] crate::process::container_main_process::ProcessError),
     #[error(transparent)]
     Procfs(#[from] procfs::ProcError),
     #[error(transparent)]
     Capabilities(#[from] caps::errors::CapsError),
-    #[error(transparent)]
-    CgroupManager(#[from] libcgroups::common::AnyManagerError),
-    #[error(transparent)]
-    CgroupCreate(#[from] libcgroups::common::CreateCgroupSetupError),
-    #[error(transparent)]
-    CgroupGet(#[from] libcgroups::common::GetCgroupSetupError),
+    // #[error(transparent)]
+    // CgroupManager(#[from] libcgroups::common::AnyManagerError),
+    // #[error(transparent)]
+    // CgroupCreate(#[from] libcgroups::common::CreateCgroupSetupError),
+    // #[error(transparent)]
+    // CgroupGet(#[from] libcgroups::common::GetCgroupSetupError),
 
     // Catch all errors that are not covered by the above
     #[error("syscall error")]
