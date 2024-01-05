@@ -4,7 +4,7 @@ use nix::sys::signal;
 
 impl Container {
     pub fn delete(&mut self, force: bool) -> Result<(), LibcontainerError> {
-        self.refresh_status()?;
+        self.refresh_status();
 
         tracing::debug!("container status: {:?}", self.status());
         match self.status() {
@@ -12,6 +12,9 @@ impl Container {
             ContainerStatus::Created => {
                 self.do_kill(signal::Signal::SIGKILL, true)?;
             }
+            ContainerStatus::Creating | ContainerStatus::Running | ContainerStatus::Paused => {}
         }
+
+        Ok(())
     }
 }

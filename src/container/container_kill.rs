@@ -18,9 +18,9 @@ impl Container {
         tracing::debug!("kill signal {} to {}", signal, pid);
         match signal::kill(pid, signal) {
             Ok(_) => {}
-            Err(nix::errno::Errno::ESRCH) => {
-                // the process does not exist, which is what we want
-            }
+            // Err(nix::errno::Errno::ESRCH) => {
+            //     // the process does not exist, which is what we want
+            // }
             Err(err) => {
                 tracing::error!(id = ?self.id(), err = ?err, ?pid, ?signal, "failed to kill process");
                 return Err(LibcontainerError::OtherSyscall(err));

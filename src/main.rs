@@ -7,6 +7,7 @@ use std::path::PathBuf;
 use rust_runtime::create;
 use rust_runtime::logger::init_logger;
 use rust_runtime::start;
+use rust_runtime::commands;
 
 #[derive(Debug, Parser)]
 struct Opts {
