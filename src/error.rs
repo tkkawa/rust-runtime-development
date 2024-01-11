@@ -44,8 +44,8 @@ pub enum LibcontainerError {
     // Config(#[from] crate::config::ConfigError),
     // #[error(transparent)]
     // Hook(#[from] crate::hooks::HookError),
-    // #[error(transparent)]
-    // State(#[from] crate::container::state::StateError),
+    #[error(transparent)]
+    State(#[from] crate::container::state::StateError),
     #[error("oci spec error")]
     Spec(#[from] oci_spec::OciSpecError),
     // #[error(transparent)]

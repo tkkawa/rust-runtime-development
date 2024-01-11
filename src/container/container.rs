@@ -1,11 +1,12 @@
 use std::fs;
 use std::path::PathBuf;
-
-use anyhow::Result;
+use chrono::{DateTime, Utc};
+use anyhow::{Error, Result};
 use nix::unistd::Pid;
 use procfs::process::{ProcState, Process};
 
 use crate::container::{ContainerStatus, State};
+use crate::error::LibcontainerError;
 
 #[derive(Debug, Clone)]
 pub struct Container {
@@ -32,21 +33,36 @@ impl Container {
     }
 
     pub fn id(&self) -> &str {
-        self.state.id.as_str()
+        // self.state.id.as_str()
+        &self.state.id
     }
 
     pub fn status(&self) -> ContainerStatus {
         self.state.status
     }
 
-    pub fn refresh_status(&self) -> Result<Self> {
+    pub fn set_status(&mut self, status: ContainerStatus) -> &mut Self {
+        let created = match (status, self.state.created) {
+            (ContainerStatus::Created, None) => Some(Utc::now()),
+            _ => self.state.created,
+        };
+
+        self.state.created = created;
+        self.state.status = status;
+
+        self
+    }
+
+    pub fn refresh_status(&mut self) -> Result<(), LibcontainerError> {
         let new_status = match self.pid() {
             Some(pid) => {
                 if let Ok(proc) = Process::new(pid.as_raw()) {
-                    match proc.stat.state().unwrap() {
+                    use procfs::process::ProcState;
+
+                    match proc.stat.state()? {
                         ProcState::Zombie | ProcState::Dead => ContainerStatus::Stopped,
                         _ => match self.status() {
-                            ContainerStatus::Creating | ContainerStatus::Created => self.status(),
+                            ContainerStatus::Creating | ContainerStatus::Created | ContainerStatus::Paused => self.status(),
                             _ => ContainerStatus::Running,
                         },
                     }
@@ -56,12 +72,15 @@ impl Container {
             }
             None => ContainerStatus::Stopped,
         };
-        self.update_status(new_status)
+        self.set_status(new_status);
+        Ok(())
+
     }
 
-    pub fn save(&self) -> Result<()> {
+    pub fn save(&self) -> Result<(), LibcontainerError> {
         log::debug!("Save container status: {:?} in {:?}", self, self.root);
-        self.state.save(&self.root)
+        self.state.save(&self.root);
+        Ok(())
     }
 
     pub fn set_pid(&self, pid: i32) -> Self {
@@ -93,11 +112,13 @@ impl Container {
         self.state.pid.map(Pid::from_raw)
     }
 
-    pub fn load(container_root: PathBuf) -> Result<Self> {
+    pub fn load(container_root: PathBuf) -> Result<Self, LibcontainerError> {
         let state = State::load(&container_root)?;
-        Ok(Self {
+        let mut container = Self {
             state,
             root: container_root,
-        })
+        };
+        container.refresh_status()?;
+        Ok(container)
     }
 }

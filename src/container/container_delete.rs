@@ -11,8 +11,12 @@ impl Container {
             ContainerStatus::Stopped => {}
             ContainerStatus::Created => {
                 self.do_kill(signal::Signal::SIGKILL, true)?;
+                self.set_status(ContainerStatus::Stopped).save()?;
             }
-            ContainerStatus::Creating | ContainerStatus::Running | ContainerStatus::Paused => {}
+            ContainerStatus::Creating | ContainerStatus::Running | ContainerStatus::Paused => {
+                self.do_kill(signal::Signal::SIGKILL, true)?;
+                self.set_status(ContainerStatus::Stopped).save()?;
+            }
         }
 
         Ok(())

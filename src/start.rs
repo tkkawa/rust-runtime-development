@@ -18,7 +18,7 @@ impl Start {
         if ! container_root.exists() {
             bail!("{} doesn't exists.", self.container_id)
         }
-        let container = Container::load(container_root)?.refresh_status()?;
+        let container = Container::load(container_root)?;
         if !container.can_start() {
             let err_msg = format!(
                 "{} counld not be started because it was {:?}",
